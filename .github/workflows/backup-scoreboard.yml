@@ -1,0 +1,25 @@
+name: Back up permanent scoreboard
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/backup-scoreboard.yml'
+      - 'scripts/backup-scores.cjs'
+permissions:
+  contents: write
+concurrency:
+  group: valley-scoreboard-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Save permanent scoreboard snapshot to GitHub
+        run: node scripts/backup-scores.cjs
