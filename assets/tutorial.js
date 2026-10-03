@@ -21,7 +21,19 @@ const lessons=[
  {title:'Give the Non-RT RIC a priority',chapter:'3 · Coordinate and protect',tab:'ric',action:'policy',value:'balanced',text:'Switch back to Balanced. Compare the new service preview with Eco.',why:'Balanced sleeps only sites with spare capacity and restores the 35-unit balancing allowance. A1 policy intent is represented by this simplified coordination choice.'},
  {title:'See your preparation pay off',chapter:'3 · Coordinate and protect',tab:'ric',action:'end',text:'Finish the festival day. Read tomorrow’s storm report to see how your protection helped.',why:'You have learned the loop: observe, decide, apply, verify, and prepare.'}
 ];
-function current(s,V){if(!s.tutorial||s.tutorial.step>=lessons.length)return null;const l={...lessons[s.tutorial.step]};if(l.storm){l.site=V.forecast(s,s.day+1).target;l.id=l.site;}return l;}
+function current(s,V){if(!s.tutorial||s.tutorial.step>=lessons.length)return null;const l={...lessons[s.tutorial.step]};if(l.storm){l.site=V.forecast(s,s.day+1).target;l.id=l.site;}if(l.action==='repair')l.text=`Harbor has ${s.sites[2].health}% hardware health. Find the Hardware health card in its district panel, then send a field crew to Repair hardware.`;return l;}
 function matches(l,type,id,value){return !!l&&l.action===type&&(l.id===undefined||String(l.id)===String(id))&&(l.value===undefined||l.value===value);}
-root.ValleyTutorial={lessons,current,matches};if(typeof module!=='undefined')module.exports=root.ValleyTutorial;
+function evidence(s,V,l){
+ const n=V.network(s),f=V.forecast(s);
+ if(l.site!==undefined){const i=l.site,x=s.sites[i],served=Math.round(n.served[i]/f.demand[i]*100);return `${V.places[i].short}: hardware health ${x.health}% · traffic served ${served}% · capacity ${n.capacity[i]} / demand ${f.demand[i]} · O1 ${x.o1?'online':'offline'}.`;}
+ return `PM datasets ${s.samples} · ${V.fresh(s)?'fresh through day '+(s.pmDay+1):'stale'} · rApps ${s.apps.length}/${s.slots} · policy ${s.policy} · valley service ${n.service}% · energy ${n.energyCost} credits/day.`;
+}
+function feedback(before,after,V,type,id,message){
+ const a=V.network(before),b=V.network(after);
+ if(type==='repair')return `${V.places[id].short}: hardware health ${before.sites[id].health}% → ${after.sites[id].health}%; capacity ${a.capacity[id]} → ${b.capacity[id]}. Repair strengthens the equipment even if traffic was already fully served.`;
+ if(type==='apply')return `${V.places[id].short}: capacity ${a.capacity[id]} → ${b.capacity[id]}; valley service ${a.service}% → ${b.service}%.`;
+ if(type==='policy')return `${before.policy} → ${after.policy}: valley service ${a.service}% → ${b.service}%; energy ${a.energyCost} → ${b.energyCost} credits/day.`;
+ return message;
+}
+root.ValleyTutorial={lessons,current,matches,evidence,feedback};if(typeof module!=='undefined')module.exports=root.ValleyTutorial;
 })(typeof window!=='undefined'?window:globalThis);

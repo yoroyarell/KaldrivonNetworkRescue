@@ -1,6 +1,6 @@
 # Kaldrivon Network Rescue: Kaldrivon Valley
 
-A village-style, turn-based SMO strategy game. Care for three districts over seven chapters of 7–14 days. Read O1 faults, stage and apply CM changes, repair hardware, collect PM, deploy rApps through R1 services, coordinate Non-RT RIC priorities, and plan for storms and festivals.
+A city-building, turn-based SMO strategy game. Care for three districts over seven chapters of 7–14 days. Read O1 faults, stage and apply CM changes, repair hardware, collect PM, deploy rApps through R1 services, coordinate Non-RT RIC priorities, and plan for storms and festivals.
 
 Play: https://challenge.kaldrivon.com
 
@@ -16,7 +16,7 @@ Static HTML/CSS/JavaScript, no build or dependencies. GitHub Pages serves main a
 
 ```sh
 python3 -m http.server 8000
-node --test tests/engine.test.cjs
+node --test tests/*.test.cjs
 ```
 
 Open `http://localhost:8000`. See `guide.html` for exact game rules and architecture references. Simulation is separate from the UI in `assets/engine.js`.
@@ -40,3 +40,7 @@ The score API is configured in `assets/online.js`. Source for the separate D1-ba
 ## Guided tutorial campaign
 
 Open `game.html?tutorial=1` for 18 guided lessons across three in-game days, then an independent four-day shift. Training uses real simulation rules, highlights the next action, explains its purpose, saves lesson progress, and remains unranked. Players can leave guidance without losing the valley.
+
+## Clarity, sound and idle help
+
+Hardware health and traffic service are separate, prominent readings. Tutorial guidance includes live measurements and last-action results. Sound effects are generated locally with Web Audio after interaction; the Sound button mutes them. Idle hints appear after 30 seconds without input, stay quiet during dialogs/animations or when the tab is hidden, and can be dismissed or disabled. Each of the seven campaigns has a distinct SVG city map, with boats confined to masked waterways.
