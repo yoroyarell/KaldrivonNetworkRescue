@@ -36,3 +36,7 @@ Original city illustration generated for this project. Existing Kaldrivon logo r
 ## Permanent scoreboard
 
 The score API is configured in `assets/online.js`. Source for the separate D1-backed service is preserved in its managed source repository. `.github/workflows/backup-scoreboard.yml` exports public verified results into `data/scoreboard.json` every six hours, retaining Git history. This repository contains no API credentials. The game never writes GitHub files directly. Replay verification is deterministic rule validation, not a guarantee against bots or copied strategies.
+
+## Guided tutorial campaign
+
+Open `game.html?tutorial=1` for 18 guided lessons across three in-game days, then an independent four-day shift. Training uses real simulation rules, highlights the next action, explains its purpose, saves lesson progress, and remains unranked. Players can leave guidance without losing the valley.
