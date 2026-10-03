@@ -1,1 +1,20 @@
-{"version":3,"updated":null,"scores":[]}
+{
+  "version": 3,
+  "updated": "2026-10-03T01:48:37.321Z",
+  "scores": [
+    {
+      "id": "0990861ab8c708bae79128fbebed300f6d6d56c73089ecbfd512b8847f1338cf",
+      "name": "Kaldrivon",
+      "mission": 1,
+      "mode": "ranked",
+      "seed": "valley-1",
+      "score": 734,
+      "average": 88,
+      "won": true,
+      "trust": 68,
+      "credits": 39,
+      "days": 7,
+      "date": "2026-10-03T01:30:57.108Z"
+    }
+  ]
+}
