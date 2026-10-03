@@ -6,10 +6,16 @@
   let chapter=Math.max(1,Math.min(7,parseInt(params.get('mission'),10)||1));
   let seed=(params.get('seed')||'valley-'+chapter).slice(0,50);
   if(mode==='weekly'){seed=NR.week();chapter=1+V.hash(seed)%7;}
+  const learning=params.get('tutorial')==='1';
+  if(learning&&!resume){mode='practice';chapter=1;seed='valley-1';}
   let s=resume?old:V.create(chapter,seed,mode),selected=0,tab='district',busy=false,report=null;
   let startedAt=Date.now(),elapsed=resume?(s.elapsed||0):0;
   const c=V.chapters[s.chapter-1];
   s.moves??=[];
+  if(learning&&!resume)s.tutorial={step:0,graduated:false};
+  const lesson=()=>ValleyTutorial.current(s,V);
+  function focusLesson(){const l=lesson();if(l){tab=l.tab;if(l.site!==undefined)selected=l.site;}}
+  focusLesson();
   NR.sound=!!NR.read('sound',false);
   const average=()=>s.history.length?Math.round(s.history.reduce((a,r)=>a+r.service,0)/s.history.length):null;
   function save(){s.elapsed=elapsed+Math.floor((Date.now()-startedAt)/1000);if(!NR.write('valley-save',s))NR.toast('Browser storage is unavailable. Keep this tab open to finish your season.');}
@@ -48,6 +54,7 @@
       <aside class="command-panel"><div class="panel-tabs" role="tablist" aria-label="Valley controls">${[['district','⌂','District'],['ric','✧','rApps'],['workshop','⚒','Build'],['journal','▤','Journal']].map(([id,icon,label])=>`<button role="tab" aria-selected="${tab===id}" data-tab="${id}">${icon}<small>${label}</small></button>`).join('')}</div><div class="panel-body" role="tabpanel">${({district,ric,workshop,journal})[tab]()}</div></aside></div>
       <div class="day-control"><div class="service-preview"><small>IF YOU FINISH TODAY</small><div><b class="${n.service<85?'warn-text':'good-text'}">${n.service}% served</b><span>◈ ${n.net>=0?'+':''}${n.net} operating balance</span></div></div><button id="end-day" class="primary">Review day ${s.day} <span>→</span></button></div><div class="mentor" role="status"><span>✦</span><p>${hint()}</p><small>Time to think. No countdown.</small></div></main><dialog id="modal" aria-labelledby="modal-title"></dialog>`;
     bind();
+    renderTutorial();
   }
   function bind(){
     document.querySelectorAll('[data-site]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.site);tab='district';render();if(innerWidth<850)$('.command-panel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});});
@@ -59,8 +66,11 @@
     $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else NR.toast('Use your browser’s full-screen or Add to Home Screen option.');}catch{NR.toast('Full screen is not available in this browser.');}};
   }
   async function perform(type,id,value){
-    if(busy)return;const out=V.act(s,type,id,value);if(!out.ok){NR.toast(out.reason);return;}
+    if(busy)return;
+    if(lesson()&&!ValleyTutorial.matches(lesson(),type,id,value)){NR.toast('Follow the highlighted tutorial action first. You can leave guided mode at any time.');return;}
+    const out=V.act(s,type,id,value);if(!out.ok){NR.toast(out.reason);return;}
     s.moves.push([type,/^[0-2]$/.test(String(id))?Number(id):(id??null),value??null]);
+    if(lesson()){s.tutorial.step++;focusLesson();}
     save();render();NR.chime(out.scene?'win':'click');
     if(out.scene){busy=true;try{await ValleyCinema.play(out.scene,typeof id==='string'&&/^\d$/.test(id)?V.places[Number(id)].name:out.message);}finally{busy=false;}}
     NR.toast(out.message);
@@ -69,12 +79,13 @@
   function help(){modal(`<div class="eyebrow">A SMALL VALLEY. REAL DECISIONS.</div><h2 id="modal-title">Make tomorrow better.</h2><div class="rule-steps"><div><b>1 · Read the valley</b><p>Select a district. O1 reveals faults. A broken management link does not always mean an outage.</p></div><div><b>2 · Spend your actions</b><p>You start with 4 crew actions daily. Repair hardware, apply CM, gather PM, or invest. Inspection and staging are free.</p></div><div><b>3 · Prepare for tomorrow</b><p>Storms damage a named site before the next day begins. Festivals raise demand. Read the forecast and plan ahead.</p></div><div><b>4 · Review, then finish</b><p>There is no clock. Your preview shows today’s outcome. Income pays for energy and rApp upkeep.</p></div></div><div class="warning">Win after ${s.days} days: average ≥${c.goal}% service, trust ≥35, treasury ≥0. Zero trust or debt ends the season.</div><p class="micro">Trust per day: +5 at ≥95% service, +2 at ≥85%, −5 at ≥70%, otherwise −12. PM remains fresh for collection day and the following day.</p><div class="actions"><button class="primary" data-close>Back to my valley</button><a href="guide.html" target="_blank" rel="noopener" class="button">Full field guide ↗</a></div>`);}
   function review(){
     if(busy||s.ended)return;
+    if(lesson()&&lesson().action!=='end'){NR.toast('Complete this lesson before advancing the day.');return;}
     const preview=JSON.parse(JSON.stringify(s));const r=V.settle(preview),next=s.day<s.days?V.forecast(s,s.day+1):null;
     modal(`<div class="eyebrow">NOT COMMITTED YET</div><h2 id="modal-title">Close day ${s.day}?</h2><div class="review-hero"><b class="${r.service>=85?'good-text':'warn-text'}">${r.service}%</b><span>of today’s traffic served</span></div><div class="balance-sheet"><span>Community income</span><b>+${r.income}</b><span>Energy</span><b>−${r.energyCost}</b><span>rApp upkeep</span><b>−${r.upkeep}</b><span>Community grants</span><b>+${r.grant}</b><span>Trust change</span><b>${r.trustDelta>0?'+':''}${r.trustDelta}</b><span>Tomorrow’s treasury</span><b>◈ ${preview.credits}</b></div>${s.ap?`<p class="micro">You have ${s.ap} unused action${s.ap===1?'':'s'}. Unused actions do not carry over.</p>`:''}${next?.storm?`<div class="warning">🌧 Before tomorrow: ${V.places[next.target].short} loses ${s.sites[next.target].hardened?'8 health.':'35 health and its O1 connection. You can still go back and stormproof it.'}</div>`:''}${r.notes.length?`<p class="micro">${esc(r.notes.filter(x=>x.startsWith('Watchkeeper')).join(' '))}</p>`:''}<div class="actions"><button data-close>Keep planning</button><button class="primary" id="confirm-end">${s.day===s.days?'Finish the season':'Let the valley run'} →</button></div>`);
     $('#confirm-end').onclick=async()=>{
-      if(busy)return;busy=true;$('#modal').close();s.moves.push(['end']);report=V.settle(s);s.log.unshift(...report.notes.map(message=>({day:s.day,message})));save();
+      if(busy)return;busy=true;$('#modal').close();s.moves.push(['end']);report=V.settle(s);if(lesson()){s.tutorial.step++;focusLesson();}s.log.unshift(...report.notes.map(message=>({day:s.day,message})));save();
       try{await ValleyCinema.play(s.ended&&s.won?'win':'night',`Day ${report.day} · ${report.service}% service · ${report.trustDelta>0?'+':''}${report.trustDelta} trust`);}finally{busy=false;}
-      render();if(s.ended)finish();else dayReport();
+      render();if(s.ended)finish();else if(s.tutorial&&s.tutorial.step>=ValleyTutorial.lessons.length&&!s.tutorial.graduated)graduate();else dayReport();
     };
   }
   function dayReport(){
@@ -91,9 +102,26 @@
     if(s.mode!=='practice') { const status=document.createElement('p');status.className='micro';status.id='score-sync';status.textContent='Saving your score to the permanent scoreboard…';$('#modal').append(status);NR.submitScore(s).then(ok=>{if(status.isConnected)status.textContent=ok?'✓ Score saved to the permanent scoreboard.':'Score saved on this device. Automatic online retry is pending.';}); }
     $('#share').onclick=async()=>{const url=new URL(NR.url(s.chapter,'challenge',s.seed),location.href).href,text=`I scored ${s.score} in Kaldrivon Valley with ${average()}% average service. Same valley, same forecast. Can you do better? ${url}`;try{await navigator.clipboard.writeText(text);NR.toast('Challenge link copied.');}catch{const el=document.createElement('textarea');el.value=text;el.setAttribute('aria-label','Copy challenge link');$('#modal').append(el);el.select();}};
   }
+  function renderTutorial(){
+    if(!s.tutorial)return;
+    const l=lesson();
+    const card=document.createElement('section');card.className='tutorial-coach';card.setAttribute('aria-live','polite');
+    if(l){
+      card.innerHTML=`<div class="tutorial-progress"><span>${esc(l.chapter)}</span><span>Lesson ${s.tutorial.step+1} / ${ValleyTutorial.lessons.length}</span></div><h2>${esc(l.title)}</h2><p>${esc(l.text)}</p><details><summary>Why this matters</summary><p>${esc(l.why)}</p></details><div class="actions"><button id="show-lesson">Show me where</button><button id="leave-tutorial">Continue without guidance</button></div>`;
+      document.querySelectorAll('[data-action]').forEach(b=>{if(ValleyTutorial.matches(l,b.dataset.action,b.dataset.id,b.dataset.value)){b.classList.add('tutorial-target');}else{b.disabled=true;b.setAttribute('title','Available after guided training.');}});
+      $('#end-day').disabled=l.action!=='end';if(l.action==='end')$('#end-day').classList.add('tutorial-target');
+    }else card.innerHTML=`<div class="eyebrow">YOUR INDEPENDENT SHIFT · DAYS 4–7</div><h2>You are in charge now.</h2><p>Finish the season with ≥85% average service and ≥35 trust. Refresh stale PM, protect tomorrow’s storm target, and prepare for the final festival.</p><a href="game.html?mission=1" class="button">Start a scored campaign</a>`;
+    $('.season-hud').after(card);
+    if($('#show-lesson'))$('#show-lesson').onclick=()=>{focusLesson();render();const target=$('.tutorial-target');target?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});target?.focus({preventScroll:true});};
+    if($('#leave-tutorial'))$('#leave-tutorial').onclick=()=>{modal(`<h2 id="modal-title">Leave guided training?</h2><p>Your valley stays as it is and remains an unranked practice season. All actions become available.</p><div class="actions"><button data-close>Keep learning</button><button id="confirm-leave-tutorial">Continue on my own</button></div>`);$('#confirm-leave-tutorial').onclick=()=>{delete s.tutorial;save();render();};};
+  }
+  function graduate(){
+    s.tutorial.graduated=true;NR.write('tutorial-completed',true);save();
+    modal(`<div class="eyebrow">GUIDED TRAINING COMPLETE</div><h2 id="modal-title">Your first three days, connected.</h2><p>You restored O1, applied CM, repaired hardware, collected PM, deployed two rApps, resolved a policy conflict, and prepared for a storm.</p><p class="micro">${esc(report.notes.join(' '))}</p><div class="warning">Now finish days 4–7 yourself. Your PM data is stale today: refresh it to reactivate your rApps.</div><div class="actions"><button class="primary" data-close>Take my independent shift</button><a class="button" href="game.html?mission=1">Start a scored campaign</a></div>`);
+  }
   render();
   if(!resume){
-    modal(`<div class="eyebrow">WELCOME, VALLEY KEEPER</div><h2 id="modal-title">${c.title}</h2><p>${c.story}</p><div class="start-rules"><span>⌂<b>Care for 3 districts</b></span><span>◷<b>4 actions each day</b></span><span>✧<b>Grow with rApps</b></span></div><div class="warning">Your goal: ${c.days} days · ≥${c.goal}% average service · ≥35 trust · no debt.</div><p class="micro">No countdown. Inspect for free, preview changes, and only end the day when you are ready. ${s.chapter===1?'Start at Willow Village: its O1 connection is down.':''}</p><label for="player">Your keeper name (shown on the scoreboard)</label><input id="player" maxlength="24" autocomplete="nickname" placeholder="Valley keeper"><button class="primary full" id="start">Look after the valley →</button>${old&&!old.ended?'<p class="micro">Starting replaces your unfinished local season. <a href="game.html?resume=1">Resume it instead ↗</a></p>':''}`);
+    modal(`<div class="eyebrow">WELCOME, VALLEY KEEPER</div><h2 id="modal-title">${s.tutorial?"Your first shift":c.title}</h2><p>${s.tutorial?"Mira will guide your first three days, one real action at a time. Then you will run the remaining four days yourself. No telecom knowledge needed.":c.story}</p><div class="start-rules"><span>⌂<b>Care for 3 districts</b></span><span>◷<b>4 actions each day</b></span><span>✧<b>Grow with rApps</b></span></div><div class="warning">Your goal: ${c.days} days · ≥${c.goal}% average service · ≥35 trust · no debt.</div><p class="micro">No countdown. Inspect for free, preview changes, and only end the day when you are ready. ${s.chapter===1?'Start at Willow Village: its O1 connection is down.':''}</p><label for="player">${s.tutorial?'Your keeper name (tutorial is unranked)':'Your keeper name (shown on the scoreboard)'}</label><input id="player" maxlength="24" autocomplete="nickname" placeholder="Valley keeper"><button class="primary full" id="start">${s.tutorial?"Begin guided training":"Look after the valley"} →</button>${old&&!old.ended?'<p class="micro">Starting replaces your unfinished local season. <a href="game.html?resume=1">Resume it instead ↗</a></p>':''}`);
     $('#player').value=String(NR.read('player','')).slice(0,24);$('#modal').addEventListener('cancel',e=>e.preventDefault(),{once:true});
     $('#start').onclick=()=>{NR.write('player',$('#player').value.trim()||'Valley keeper');save();$('#modal').close();};
   }
