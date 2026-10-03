@@ -4,13 +4,13 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const hash = s => Array.from(String(s)).reduce((a, c) => (Math.imul(a, 31) + c.charCodeAt(0)) >>> 0, 7);
   const chapters = [
-    {id:1,title:'A valley wakes',icon:'🌱',days:7,goal:85,credits:210,story:'Mira’s market opens in a week. Restore the valley and keep its first festival connected.',lesson:'O1, repairs & capacity'},
-    {id:2,title:'Market days',icon:'🏮',days:10,goal:88,credits:190,story:'The market is growing. Extra radio power helps today, but a balancing rApp can help every day.',lesson:'PM data & load balancing'},
-    {id:3,title:'The green valley',icon:'🌿',days:10,goal:88,credits:150,story:'A small treasury, a rising electricity bill. Decide when your valley can afford to sleep.',lesson:'Energy versus coverage'},
-    {id:4,title:'Storm season',icon:'🌧',days:12,goal:88,credits:190,story:'Storms follow the river. Harden vulnerable sites before the weather turns.',lesson:'Resilience & field crews'},
-    {id:5,title:'Two voices',icon:'⚖',days:12,goal:90,credits:180,story:'Energy and capacity apps want different things. Give your Non-RT RIC a clear priority.',lesson:'rApp conflict coordination'},
-    {id:6,title:'The invisible valley',icon:'🔭',days:14,goal:90,credits:180,story:'Traffic still flows, but your O1 management connections are down. Restore visibility before automating.',lesson:'Management is not service'},
-    {id:7,title:'The grand festival',icon:'🎆',days:14,goal:92,credits:170,story:'The entire valley is counting on you. Build a network that can weather storms and the final festival.',lesson:'The complete SMO challenge'}
+    {id:1,map:'city-1.svg',cityName:'Willow Reach',title:'A valley wakes',icon:'🌱',days:7,goal:85,credits:210,story:'Mira’s market opens in a week. Restore the valley and keep its first festival connected.',lesson:'O1, repairs & capacity'},
+    {id:2,map:'city-2.svg',cityName:'Lantern Basin',title:'Market days',icon:'🏮',days:10,goal:88,credits:190,story:'The market is growing. Extra radio power helps today, but a balancing rApp can help every day.',lesson:'PM data & load balancing'},
+    {id:3,map:'city-3.svg',cityName:'Verdant Quays',title:'The green valley',icon:'🌿',days:10,goal:88,credits:150,story:'A small treasury, a rising electricity bill. Decide when your valley can afford to sleep.',lesson:'Energy versus coverage'},
+    {id:4,map:'city-4.svg',cityName:'Breakwater City',title:'Storm season',icon:'🌧',days:12,goal:88,credits:190,story:'Storms follow the river. Harden vulnerable sites before the weather turns.',lesson:'Resilience & field crews'},
+    {id:5,map:'city-5.svg',cityName:'Twin Canal City',title:'Two voices',icon:'⚖',days:12,goal:90,credits:180,story:'Energy and capacity apps want different things. Give your Non-RT RIC a clear priority.',lesson:'rApp conflict coordination'},
+    {id:6,map:'city-6.svg',cityName:'Fogbank City',title:'The invisible valley',icon:'🔭',days:14,goal:90,credits:180,story:'Traffic still flows, but your O1 management connections are down. Restore visibility before automating.',lesson:'Management is not service'},
+    {id:7,map:'city-7.svg',cityName:'Festival Metropolis',title:'The grand festival',icon:'🎆',days:14,goal:92,credits:170,story:'The entire valley is counting on you. Build a network that can weather storms and the final festival.',lesson:'The complete SMO challenge'}
   ];
   const places = [
     {name:'Willow Village',short:'Willow',icon:'🏡',x:22,y:34,base:63,person:'Mira',wish:'Keep the village connected. The market is our livelihood.'},
@@ -26,7 +26,7 @@
     const roll=hash(s.seed+':'+day), storm=day>2 && (day%4===0 || (s.chapter>=4 && day%5===0));
     const festival=day===s.days || day%3===0;
     const demand=places.map((p,i)=>p.base + Math.floor((day-1)*2.2) + (hash(s.seed+':'+day+':'+i)%13-6) + (festival?(i===1?48:15):0));
-    return {day,storm,festival,target:roll%3,demand,label:storm?'River storm':festival?'Lantern festival':'Village day',icon:storm?'🌧':festival?'🏮':'☀',energy:storm?1.25:1};
+    return {day,storm,festival,target:roll%3,demand,label:storm?'River storm':festival?'Lantern festival':'City day',icon:storm?'🌧':festival?'🏮':'☀',energy:storm?1.25:1};
   }
   function create(chapter=1,seed='valley',mode='ranked') {
     const c=chapters[clamp(chapter,1,7)-1];
