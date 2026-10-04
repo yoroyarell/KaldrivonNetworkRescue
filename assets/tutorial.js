@@ -35,5 +35,6 @@ function feedback(before,after,V,type,id,message){
  if(type==='policy')return `${before.policy} → ${after.policy}: valley service ${a.service}% → ${b.service}%; energy ${a.energyCost} → ${b.energyCost} credits/day.`;
  return message;
 }
-root.ValleyTutorial={lessons,current,matches,evidence,feedback};if(typeof module!=='undefined')module.exports=root.ValleyTutorial;
+function leave(s){s.mode='ranked';delete s.tutorial;return s;}
+root.ValleyTutorial={lessons,current,matches,evidence,feedback,leave};if(typeof module!=='undefined')module.exports=root.ValleyTutorial;
 })(typeof window!=='undefined'?window:globalThis);
