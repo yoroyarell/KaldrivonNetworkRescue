@@ -49,3 +49,6 @@ Hardware health and traffic service are separate, prominent readings. Tutorial g
 A read-only daily board identifies O1/CM problems, tomorrow’s storm risks and optional maintenance, capacity, energy and rApp opportunities. Forecasts simulate the actual next-day rules, including expiring PM and drift. Options navigate to existing actions and explain their costs; quiet days explicitly allow saving and advancing. After guided training the redundant day-complete popup is removed. Score rules and replay actions are unchanged.
 
 Hints controls the planning board and mentor advice, with the preference saved on this device. Optional plans contain at most one suggestion per kind of work. Scenes has explicit ON/OFF labels and contrasting toggle states.
+
+## Difficulty
+Easy preserves the original simulation and legacy saves/replays. Normal, Hard and Expert increase demand growth, event frequency, prices and service/trust targets while reducing budgets. Expert begins with three daily actions, has same-day PM freshness, and locks hints off. Tutorial always uses Easy. Campaign links, friend challenges, autosaves and score replays carry difficulty; scoreboards filter it separately. The server stores harder results separately from the legacy Easy table.
