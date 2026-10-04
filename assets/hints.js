@@ -4,6 +4,11 @@
   function suggest(s,V,lesson){
     if(s.ended)return null;
     if(lesson)return {text:lesson.text,tab:lesson.tab,site:lesson.site,action:lesson.action,id:lesson.id,value:lesson.value};
+    if(root.ValleyPlanner){
+      const p=root.ValleyPlanner.plan(s,V);
+      if(!s.ap||p.ready)return {text:p.title+' '+p.text,action:'end'};
+      const h=p.urgent[0];if(h)return {...h,text:h.text};
+    }
     const candidate=(text,tab,action,id,value,site)=>V.quote(s,action,id,value).ok?{text,tab,action,id,value,site}:null;
     const end={text:'Open the day review to check service, income and trust. You can return to planning before committing.',action:'end'};
     if(!s.ap)return {...end,text:'Your crew has no actions left. Review today’s outcome, then open the next day to get fresh actions.'};
