@@ -22,3 +22,8 @@ test('no-action and final-day states are explicit without inventing a next day',
  const s=V.create(1);s.ap=0;a.equal(P.plan(s,V).options.length,0);a.match(P.plan(s,V).title,/Crew shift complete/);
  s.day=s.days;a.equal(P.plan(s,V).tomorrow,null);
 });
+
+test('idle guidance agrees when a healthy city is ready to advance',()=>{
+ const H=require('../assets/hints.js'),s=V.create(1);s.sites.forEach(x=>{x.o1=true;x.locked=false;x.health=100;});
+ const hint=H.suggest(s,V,null);a.equal(hint.action,'end');a.match(hint.text,/Everything is stable/);
+});
