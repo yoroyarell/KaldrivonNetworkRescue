@@ -50,3 +50,5 @@ dialog.cinema{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:
 /* Keep the author link readable alongside game navigation on small screens. */
 @media(max-width:650px){.header-inner{flex-wrap:wrap}.header-inner nav{flex-wrap:wrap;gap:10px 18px;width:100%;justify-content:flex-end}}
 .author-heading{display:flex;gap:18px;align-items:center;margin-bottom:18px}.author-heading img{width:55px;height:55px}.author-heading h2{margin:0}.about-links{display:flex;flex-wrap:wrap;gap:10px}
+
+.resident>b{flex:0 0 106px}.resident>b small{display:inline-block;color:#c4d3c9;font-size:10px;line-height:1.4;font-weight:400;margin-top:3px}
