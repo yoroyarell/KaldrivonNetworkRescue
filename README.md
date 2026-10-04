@@ -44,3 +44,6 @@ Open `game.html?tutorial=1` for 18 guided lessons across three in-game days, the
 ## Clarity, sound and idle help
 
 Hardware health and traffic service are separate, prominent readings. Tutorial guidance includes live measurements and last-action results. Sound effects are generated locally with Web Audio after interaction; the Sound button mutes them. Idle hints appear after 30 seconds without input, stay quiet during dialogs/animations or when the tab is hidden, and can be dismissed or disabled. All campaigns use the original illustrated city map. People and bicycles follow short land routes; one boat follows the central waterway. Actor coordinates use the same image aspect ratio and crop as the background. Chapter cards have no map previews.
+
+## Daily planning
+A read-only daily board identifies O1/CM problems, tomorrow’s storm risks and optional maintenance, capacity, energy and rApp opportunities. Forecasts simulate the actual next-day rules, including expiring PM and drift. Options navigate to existing actions and explain their costs; quiet days explicitly allow saving and advancing. After guided training the redundant day-complete popup is removed. Score rules and replay actions are unchanged.
