@@ -9,7 +9,7 @@ NR.week=()=>{const d=new Date();d.setUTCHours(0,0,0,0);d.setUTCDate(d.getUTCDate
 NR.hash=s=>Array.from(s).reduce((a,c)=>(Math.imul(a,31)+c.charCodeAt(0))>>>0,7);
 NR.weekMission=()=>1+NR.hash(NR.week())%7;
 NR.time=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-NR.url=(id,mode='ranked',seed='')=>`game.html?mission=${id}&mode=${mode}${seed?'&seed='+encodeURIComponent(seed):''}`;
+NR.url=(id,mode='ranked',seed='',difficulty=NR.read('difficulty','easy'))=>`game.html?mission=${id}&mode=${mode}&difficulty=${encodeURIComponent(Object.hasOwn(Valley.difficulties,difficulty)?difficulty:'easy')}${seed?'&seed='+encodeURIComponent(seed):''}`;
 NR.toast=msg=>{document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.role='status';t.textContent=msg;document.body.append(t);setTimeout(()=>t.remove(),4000)};
 NR.header=page=>`<a class="skip" href="#main">Skip to game content</a><header><div class="header-inner"><a class="brand" href="index.html"><img src="assets/logo.svg" alt="Kaldrivon logo"><span>KALDRIVON<small>NETWORK RESCUE</small></span></a><nav aria-label="Main navigation">${[['index.html','Missions','missions'],['scores.html','Scoreboard','scores'],['guide.html','How to play','guide']].map(([url,label,p])=>`<a href="${url}" ${page===p?'aria-current="page"':''}>${label}</a>`).join('')}</nav></div></header>`;
 NR.footer=()=>`<footer class="foot"><span>Built by <a href="https://kaldrivon.com" target="_blank" rel="noopener">Kaldrivon</a> · Synthetic network. Real problem-solving.</span><span><a href="guide.html#privacy">Privacy & scoring</a> · No account needed</span></footer>`;

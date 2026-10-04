@@ -17,7 +17,7 @@
    }
    if(x.health<100){
     const repaired=copy(s);repaired.sites[i].health=100;const n=V.network(repaired),q=V.quote(s,'repair',i);
-    add(urgent,`Repair ${p.short} hardware`,`${x.health}% hardware health: equipment is damaged even when traffic is fully served. Repair restores health to 100% and capacity ${today.capacity[i]} → ${n.capacity[i]}. Costs 18 credits, one part and one action.${q.ok?'':` Currently unavailable: ${q.reason}`}`,'district',i,'repair',i);
+    add(urgent,`Repair ${p.short} hardware`,`${x.health}% hardware health: equipment is damaged even when traffic is fully served. Repair restores health to 100% and capacity ${today.capacity[i]} → ${n.capacity[i]}. Costs ${q.cost} credits, one part and one action.${q.ok?'':` Currently unavailable: ${q.reason}`}`,'district',i,'repair',i);
    }
   }
   if(s.apps.length&&!today.appsReady&&!urgent.some(x=>x.action==='connect')){
@@ -25,11 +25,11 @@
   }
   const next=tomorrow?V.forecast(after):null;
   if(next?.storm&&!s.sites[next.target].hardened){
-   add(urgent,`Protect ${V.places[next.target].short} before tomorrow`,'Storm damage will remove 35 health and disconnect O1. Stormproofing costs 40 credits and one part, reducing damage to 8.','district',next.target,'harden',next.target);
+   add(urgent,`Protect ${V.places[next.target].short} before tomorrow`,`Storm damage will remove ${V.rules(s).damage} health and disconnect O1. Stormproofing costs ${V.quote(s,'harden',next.target).cost} credits and one part, reducing damage to ${V.rules(s).protectedDamage}.`,'district',next.target,'harden',next.target);
   }
-  if(report.service<V.chapters[s.chapter-1].goal&&!urgent.length){
+  if(report.service<V.goal(s)&&!urgent.length){
    const i=today.served.map((n,i)=>V.forecast(s).demand[i]-n).indexOf(Math.max(...today.served.map((n,i)=>V.forecast(s).demand[i]-n)));
-   add(urgent,'Improve today’s service',`Today is projected at ${report.service}%, below the ${V.chapters[s.chapter-1].goal}% season target. Compare expansion, repair, CM power or Flow Weaver before committing.`,'district',i,'upgrade',i);
+   add(urgent,'Improve today’s service',`Today is projected at ${report.service}%, below the ${V.goal(s)}% season target. Compare expansion, repair, CM power or Flow Weaver before committing.`,'district',i,'upgrade',i);
   }
   if(s.ap){
    // Optional work must have a measurable benefit and be affordable.
@@ -49,17 +49,17 @@
     const t=copy(s);t.sites[i].power='eco';const n=V.network(t);
     if(n.service>=95&&n.energyCost<today.energyCost&&s.credits>=8){
      const action=!x.inspected?'inspect':x.staged?.power==='eco'?'apply':'stage';
-     add(options,`Tune ${V.places[i].short} for efficiency`,`Mira’s efficiency request: Eco power keeps ${n.service}% service today and changes energy ${today.energyCost} → ${n.energyCost} credits/day. CM costs 8 credits and one action. Lower capacity may need reversing for busy days.`,'district',i,action,i,action==='stage'?'eco':undefined);
+     add(options,`Tune ${V.places[i].short} for efficiency`,`Mira’s efficiency request: Eco power keeps ${n.service}% service today and changes energy ${today.energyCost} → ${n.energyCost} credits/day. CM costs ${V.quote(s,'apply',i).cost} credits and one action. Lower capacity may need reversing for busy days.`,'district',i,action,i,action==='stage'?'eco':undefined);
     }
    }
    for(const id of ['balance','energy','heal'])if(legal('install',id)){
     const t=copy(s);V.act(t,'install',id);const n=V.network(t);
-    if(n.service>today.service||n.net>today.net||(id==='heal'&&s.sites.some(x=>x.drift||x.locked)))add(options,`Try ${V.apps[id].name}`,`Deploy through R1: service ${today.service}% → ${n.service}%, operating balance ${today.net} → ${n.net} credits/day. Purchase ${V.apps[id].price} credits; upkeep 3/day.`,'ric',undefined,'install',id);
+    if(n.service>today.service||n.net>today.net||(id==='heal'&&s.sites.some(x=>x.drift||x.locked)))add(options,`Try ${V.apps[id].name}`,`Deploy through R1: service ${today.service}% → ${n.service}%, operating balance ${today.net} → ${n.net} credits/day. Purchase ${V.quote(s,'install',id).cost} credits; upkeep 3/day.`,'ric',undefined,'install',id);
    }
-   if(s.apps.length&&V.fresh(s)&&s.pmDay!==s.day&&next&&!V.fresh(after)&&legal('pm'))add(options,'Keep automation ready tomorrow','Tomorrow your PM data expires. Collect now for 5 credits and one action, or reserve tomorrow’s crew for a fresh dataset.','ric',undefined,'pm');
+   if(s.apps.length&&V.fresh(s)&&s.pmDay!==s.day&&next&&!V.fresh(after)&&legal('pm'))add(options,'Keep automation ready tomorrow',`Tomorrow your PM data expires. Collect now for ${V.quote(s,'pm').cost} credits and one action, or reserve tomorrow’s crew for a fresh dataset.`,'ric',undefined,'pm');
   }
-  const ready=!urgent.length&&report.service>=V.chapters[s.chapter-1].goal&&after.credits>=0;
-  const hardwareOnly=urgent.length>0&&urgent.every(h=>h.action==='repair')&&report.service>=V.chapters[s.chapter-1].goal;
+  const ready=!urgent.length&&report.service>=V.goal(s)&&after.credits>=0;
+  const hardwareOnly=urgent.length>0&&urgent.every(h=>h.action==='repair')&&report.service>=V.goal(s);
   const title=!s.ap?'Crew shift complete':hardwareOnly?'Service is healthy, but equipment needs attention.':ready?'Everything is stable. Advance when ready.':'Before you close today';
   const text=!s.ap?'Your actions are used. Review the outcome and tomorrow’s conditions.':ready?'Optional improvements are available below. Saving credits and advancing is a valid choice; unused actions do not carry over.':'Choose what to fix or prepare. You can still advance, but check the consequences in the day review.';
   const kinds=new Set(),distinct=options.filter(h=>{
