@@ -49,8 +49,15 @@ test('task effects schedule audio; mute cancels pending resume and active notes'
  a.equal(await audio.play('repair'),true);a.equal(starts,S.patterns.repair.length);const before=stops;audio.stop();a.equal(stops-before,S.patterns.repair.length);
  a.notDeepEqual(S.patterns.repair,S.patterns.pm);a.notDeepEqual(S.patterns.connect,S.patterns.install);
 });
-test('each campaign loads a unique map and regular days are City days',()=>{
+test('all campaigns use the original map, without chapter previews or water pedestrians',()=>{
  const fs=require('node:fs'),path=require('node:path');
- a.equal(new Set(V.chapters.map(c=>c.map)).size,7);
- for(const c of V.chapters){const svg=fs.readFileSync(path.join(__dirname,'../assets',c.map),'utf8');a.match(svg,/mask="url\(#waterMask\)"/);a.ok(svg.includes(c.cityName));a.equal(V.forecast(V.create(c.id)).label,'City day');}
+ a.deepEqual([...new Set(V.chapters.map(c=>c.map))],['city.webp']);
+ for(const c of V.chapters)a.equal(V.forecast(V.create(c.id)).label,'City day');
+ const game=fs.readFileSync(path.join(__dirname,'../assets/game.js'),'utf8');
+ const home=fs.readFileSync(path.join(__dirname,'../assets/home.js'),'utf8');
+ a.ok(!home.includes('chapter-map'));
+ a.match(game,/viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid slice"/);
+ a.equal((game.match(/class="water-boat"/g)||[]).length,1);
+ a.equal((game.match(/class="land-person"/g)||[]).length,2);
+ a.equal((game.match(/class="land-bike"/g)||[]).length,2);
 });
