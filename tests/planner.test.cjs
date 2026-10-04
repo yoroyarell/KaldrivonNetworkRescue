@@ -26,5 +26,14 @@ test('no-action and final-day states are explicit without inventing a next day',
 test('optional plans offer different kinds of work instead of repeating districts',()=>{
  const s=V.create(3),p=P.plan(s,V);
  const kinds=p.options.map(h=>['inspect','stage','apply','policy'].includes(h.action)?'efficiency':h.action==='install'?'automation':h.action);
- a.equal(new Set(kinds).size,kinds.length);a.ok(kinds.includes('repair'));a.ok(kinds.includes('efficiency'));
+ a.equal(new Set(kinds).size,kinds.length);a.ok(p.urgent.some(h=>h.action==='repair'));a.ok(kinds.includes('efficiency'));
+});
+
+test('damaged Harbor needs attention despite full traffic service',()=>{
+ const s=V.create(1,'valley-1');s.sites[0].o1=true;s.sites[0].locked=false;
+ a.equal(V.network(s).service,100);const p=P.plan(s,V);
+ a.equal(p.ready,false);a.match(p.title,/equipment needs attention/);
+ a.ok(p.urgent.some(h=>h.action==='repair'&&h.site===2));a.ok(!p.options.some(h=>h.action==='repair'));
+ s.parts=0;const blocked=P.plan(s,V).urgent.find(h=>h.action==='repair');a.match(blocked.text,/Currently unavailable/);
+ s.sites[2].health=100;a.equal(P.plan(s,V).ready,true);
 });
