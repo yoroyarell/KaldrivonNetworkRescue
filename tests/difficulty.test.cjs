@@ -16,3 +16,22 @@ test('rApps do useful work only with appropriate capacity, data and intent',()=>
  const stale=V.network({...s,pmDay:0});a.equal(stale.appsReady,false);a.equal(stale.sleeping.length,0);
  s.policy='capacity';s.sites[1].level=1;s.sites[1].health=60;const balanced=V.network(s);const manual=V.network({...s,apps:['energy']});a.ok(balanced.service>manual.service);a.ok(balanced.transfers.length>0);
 });
+
+test('new Expert neglect fails by day four across varied starts and replays verify',()=>{
+ const patterns=new Set();
+ for(let i=0;i<100;i++){
+  const seed='valley-1-v4-'+i.toString(16).padStart(16,'0'),s=V.create(1,seed,'ranked','expert'),moves=[];
+  patterns.add(JSON.stringify({sites:s.sites,weather:Array.from({length:7},(_,day)=>V.forecast(s,day+1))}));
+  a.equal(V.neglectLoss(s),18);while(!s.ended){moves.push(['end']);V.settle(s);}
+  a.equal(s.won,false);a.equal(s.day,4);a.equal(s.trust,0);
+  a.equal(verify({version:3,chapter:1,seed,mode:'ranked',difficulty:'expert',moves},'QA',0,'').score,s.score);
+ }
+ a.equal(patterns.size,100);
+ a.throws(()=>verify({version:3,chapter:2,seed:'valley-1-v4-0000000000000000',mode:'ranked',moves:[]},'QA',0,''),/seed/);
+});
+test('shared new-season seeds reproduce faults and incident forecasts exactly',()=>{
+ const seed='valley-4-v4-1234567890abcdef',s=V.create(4,seed,'ranked','expert'),friend=V.create(4,seed,'challenge','expert');
+ a.deepEqual(s.sites,friend.sites);
+ for(let day=1;day<=s.days;day++)a.deepEqual(V.forecast(s,day),V.forecast(friend,day));
+ const legacy=V.create(1,'valley-1','ranked','expert');a.equal(V.neglectLoss(legacy),12);
+});
