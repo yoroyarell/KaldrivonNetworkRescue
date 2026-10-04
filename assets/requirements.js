@@ -7,9 +7,23 @@ function list(s,V,type,id,value){
  if(q.ap)add(`Crew ${s.ap}/${q.ap}`,s.ap>=q.ap,'Crew actions reset each day. Review and finish today to replenish them. Train another crew in Build for a permanent extra action.');
  if(q.cost)add(`Credits ${s.credits}/${q.cost}`,s.credits>=q.cost,'Purchase costs are paid immediately. Finish a day with positive operating income to earn credits; compare energy and upkeep before spending.');
  if(q.parts)add(`Parts ${s.parts}/${q.parts}`,s.parts>=q.parts,'Buy a spare-parts crate in Build. It supplies three parts and uses no crew action.');
+ if(s.ended)add('Active season',false,'This season has finished. Start another chapter to take actions.');
+ if(type==='repair'&&x)add('Hardware damage',x.health!==100,`Hardware health is ${x.health}%. Repair is available only when hardware health is below 100%; configuration faults need CM changes instead.`);
+ if(type==='connect'&&x)add('O1 disconnected',!x.o1,'Restore O1 only when the selected district’s management link is offline. A connected link needs no restoration.');
+ if(type==='upgrade'&&x)add(`Level ${x.level}/3`,x.level<3,'District capacity can be upgraded to level 3. This district is already at the limit when level 3 is shown.');
+ if(['inspect','stage','rollback'].includes(type))add('O1 online',!!x?.o1,'Restore the selected district’s O1 connection before reading or changing its configuration.');
+ if(type==='stage'&&x){add('O1 report read',x.inspected,'Read the O1 report first to inspect FM and CM.');add('Configuration change',!!(x.locked||x.drift||x.power!==value),'Choose a different power mode, or use a CM change to clear a radio lock or configuration drift. The active healthy configuration needs no reapplication.');}
+ if(type==='rollback')add('Previous configuration',!!x?.previous,'Apply a CM change first to create a previous configuration that you can restore.');
+ if(type==='r1')add('R1 unregistered',!s.r1,'The R1 data service needs registering only once. It is already available when this requirement is missing.');
+ if(type==='crew')add(`Crew ${s.crew}/6`,s.crew<6,'Crew training adds a daily action, up to six crew actions per day.');
+ if(type==='compute')add(`Compute ${s.slots}/3`,s.slots<3,'Compute can be expanded to three slots, one for each available rApp.');
+ if(type==='uninstall')add('rApp installed',s.apps.includes(id),'Only an installed rApp can be removed. Removal frees its compute slot and ends its daily upkeep.');
+ if(type==='policy')add('Different policy',s.policy!==value,'The selected coordination policy is already active. Choose another policy to change priorities.');
  if(type==='harden'&&x)add('Unprotected site',!x.hardened,'Stormproofing is permanent for this season. A protected site cannot be stormproofed again; repair its remaining hardware damage separately.');
  if(type==='install'){
   const app=V.apps[id];
+  if(!app){add('Known rApp',false,'Choose an available rApp from the list.');return items;}
+  add('Not installed',!s.apps.includes(id),'Each rApp can be installed once. An installed rApp already runs automatically when its data requirements are met.');
   add('R1 service',s.r1,'Register R1 in the rApps panel to give apps access to SMO data services.');
   add(`O1 ${s.sites.filter(x=>x.o1).length}/3`,s.sites.every(x=>x.o1),'Restore O1 in every district. Energy and balancing need data from all three sites.');
   add('Fresh PM',V.fresh(s),'Collect O1 PM in the rApps panel after connecting all sites. Expert data lasts only today; other levels also cover tomorrow.');
@@ -18,6 +32,7 @@ function list(s,V,type,id,value){
  }
  if(type==='pm'){add('All O1 links',s.sites.every(x=>x.o1),'Restore O1 in all three district panels before collecting PM.');add('New daily collection',s.pmDay!==s.day,'One PM collection per day. Finish today, then collect another dataset tomorrow.');}
  if(type==='apply'){add('O1 online',!!x?.o1,'Restore the selected district’s O1 connection first.');add('CM staged',!!x?.staged,'Read the O1 report, choose Normal, Boost or Eco, then apply the staged change.');}
+ if(!q.ok&&items.every(item=>item.met))add('Action available',false,q.reason||'This action is currently unavailable.');
  return items;
 }
 function benefit(s,V,id){

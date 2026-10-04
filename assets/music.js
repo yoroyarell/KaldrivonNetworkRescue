@@ -19,7 +19,7 @@ window.ValleyMusic = {
         function fade(now) {
           if (!wanted()) { pause(); return; }
           const progress = Math.min(1, (now - start) / 1800);
-          track.volume = .18 * progress;
+          track.volume = .09 * progress;
           if (progress < 1) frame = requestAnimationFrame(fade);
         }
         frame = requestAnimationFrame(fade);
