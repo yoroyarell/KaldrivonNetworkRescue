@@ -46,3 +46,7 @@ dialog.cinema{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:
 
 /* Keep reset help visually and accessibly attached to its button. */
 .season-actions{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;margin-bottom:14px}.world-title .season-actions .button{margin:0}.restart-group{display:flex;flex-direction:column;align-items:stretch;gap:6px;max-width:195px}.restart-group .restart-note{margin:0;padding:0 3px;line-height:1.45;font-size:12px;color:#e2e8dd}
+
+/* Keep the author link readable alongside game navigation on small screens. */
+@media(max-width:650px){.header-inner{flex-wrap:wrap}.header-inner nav{flex-wrap:wrap;gap:10px 18px;width:100%;justify-content:flex-end}}
+.author-heading{display:flex;gap:18px;align-items:center;margin-bottom:18px}.author-heading img{width:55px;height:55px}.author-heading h2{margin:0}.about-links{display:flex;flex-wrap:wrap;gap:10px}
