@@ -15,6 +15,10 @@
     const action=route(i);
     add(urgent,x.locked?`${p.short}: restore radio service`:x.drift?`${p.short}: correct CM drift`:`${p.short}: restore O1`,!x.o1?'Management is offline. Restore visibility before telemetry or remote configuration.':`${x.locked?'Radio is locked.':'Configuration differs from baseline.'} Read O1, stage a change and check its service preview.`,'district',i,action,i,action==='stage'?'normal':undefined);
    }
+   if(x.health<100){
+    const repaired=copy(s);repaired.sites[i].health=100;const n=V.network(repaired),q=V.quote(s,'repair',i);
+    add(urgent,`Repair ${p.short} hardware`,`${x.health}% hardware health: equipment is damaged even when traffic is fully served. Repair restores health to 100% and capacity ${today.capacity[i]} → ${n.capacity[i]}. Costs 18 credits, one part and one action.${q.ok?'':` Currently unavailable: ${q.reason}`}`,'district',i,'repair',i);
+   }
   }
   if(s.apps.length&&!today.appsReady&&!urgent.some(x=>x.action==='connect')){
    add(urgent,'Reactivate your rApps',!s.r1?'R1 registration is missing. Restore the SMO data service.':'PM data is stale. Collect a dataset to resume optimization today and tomorrow.','ric',undefined,!s.r1?'r1':'pm');
@@ -29,10 +33,6 @@
   }
   if(s.ap){
    // Optional work must have a measurable benefit and be affordable.
-   for(let i=0;i<3;i++)if(s.sites[i].health<100&&legal('repair',i)){
-    const t=copy(s);V.act(t,'repair',i);const n=V.network(t);
-    add(options,`Maintain ${V.places[i].short}`,`Aya’s field crew: ${s.sites[i].health}% → 100% health; capacity ${today.capacity[i]} → ${n.capacity[i]}. Costs 18 credits, one part and one action.`,'district',i,'repair',i);
-   }
    if(next&&tomorrow.service<95){
     const demand=next.demand.map((n,i)=>n-tomorrow.served[i]);const i=demand.indexOf(Math.max(...demand));
     if(legal('upgrade',i)){
@@ -59,7 +59,8 @@
    if(s.apps.length&&V.fresh(s)&&s.pmDay!==s.day&&next&&!V.fresh(after)&&legal('pm'))add(options,'Keep automation ready tomorrow','Tomorrow your PM data expires. Collect now for 5 credits and one action, or reserve tomorrow’s crew for a fresh dataset.','ric',undefined,'pm');
   }
   const ready=!urgent.length&&report.service>=V.chapters[s.chapter-1].goal&&after.credits>=0;
-  const title=!s.ap?'Crew shift complete':ready?'Everything is stable. Advance when ready.':'Before you close today';
+  const hardwareOnly=urgent.length>0&&urgent.every(h=>h.action==='repair')&&report.service>=V.chapters[s.chapter-1].goal;
+  const title=!s.ap?'Crew shift complete':hardwareOnly?'Service is healthy, but equipment needs attention.':ready?'Everything is stable. Advance when ready.':'Before you close today';
   const text=!s.ap?'Your actions are used. Review the outcome and tomorrow’s conditions.':ready?'Optional improvements are available below. Saving credits and advancing is a valid choice; unused actions do not carry over.':'Choose what to fix or prepare. You can still advance, but check the consequences in the day review.';
   const kinds=new Set(),distinct=options.filter(h=>{
    const kind=['inspect','stage','apply','policy'].includes(h.action)?'efficiency':h.action==='install'?'automation':h.action;
