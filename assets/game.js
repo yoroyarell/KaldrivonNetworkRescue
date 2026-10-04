@@ -11,7 +11,7 @@
   const requested=learning?'easy':(params.get('difficulty')||NR.read('difficulty','easy'));
   let s=resume?old:V.create(chapter,seed,mode,requested),selected=0,tab='district',busy=false,report=null;
   let startedAt=Date.now(),elapsed=resume?(s.elapsed||0):0;
-  const c={...V.chapters[s.chapter-1],goal:V.goal(s)},d=V.rules(s),hintsOn=()=>d.hints&&NR.read('hints',true);
+  const c={...V.chapters[s.chapter-1],goal:V.goal(s)},d=V.rules(s),hintsKey=d.id==='easy'?'hints':'hints-'+d.id,hintsOn=()=>d.hints&&NR.read(hintsKey,d.id==='easy');
   if(!resume&&!learning)NR.write('difficulty',d.id);
   s.moves??=[];
   if(learning&&!resume)s.tutorial={step:0,graduated:false};
@@ -19,7 +19,7 @@
   function focusLesson(){const l=lesson();if(l){tab=l.tab;if(l.site!==undefined)selected=l.site;}}
   focusLesson();
   NR.sound=!!NR.read('sound',true);
-  const audio=ValleySound.create();
+  const audio=ValleySound.create(),music=ValleyMusic.create();
   NR.chime=type=>{if(NR.sound&&!document.hidden)audio.play(type);};
   document.addEventListener('visibilitychange',()=>audio.stop());
   addEventListener('pagehide',()=>audio.stop());
@@ -62,8 +62,9 @@
   }
   function hint(){return lesson()?lesson().text:typeof ValleyPlanner==='undefined'?'Review today’s outcome and tomorrow’s forecast.':ValleyPlanner.plan(s,V)?.text||'Your season is complete.';}
   function render(){
+    music.suspend(!!s.ended);
     const f=V.forecast(s),next=V.forecast(s,Math.min(s.days,s.day+1)),n=V.network(s),av=average();
-    $('#app').innerHTML=NR.header('')+`<main id="main" class="valley-game"><div class="game-title"><div><div class="eyebrow">CHAPTER ${s.chapter} · ${d.name.toUpperCase()} · ${s.mode==='weekly'?'WEEKLY CHALLENGE':s.mode.toUpperCase()}</div><h1>${c.title}</h1></div><div class="game-options"><button id="help" aria-label="Open game rules">? Rules</button><button id="cinema-toggle" class="setting-toggle" aria-label="Task scenes ${NR.read('cinematics',true)?'on':'off'}" aria-pressed="${NR.read('cinematics',true)}" title="Toggle task animations"><span class="toggle-dot" aria-hidden="true"></span>Scenes <b>${NR.read('cinematics',true)?'ON':'OFF'}</b></button><button id="sound" class="setting-toggle" aria-label="Sound effects ${NR.sound?'on':'off'}" aria-pressed="${NR.sound}">${NR.sound?'♫ Sound on':'♫ Sound off'}</button><button id="hints-toggle" class="setting-toggle" ${d.hints?'':'disabled title="Hints are disabled in Expert"'} aria-label="Planning hints ${hintsOn()?'on':'off'}" aria-pressed="${hintsOn()}" aria-controls="daily-plan"><span class="toggle-dot" aria-hidden="true"></span>Hints <b>${!d.hints?'LOCKED OFF':hintsOn()?'ON':'OFF'}</b></button><button id="fullscreen" aria-label="Toggle full screen">⛶</button></div></div>
+    $('#app').innerHTML=NR.header('')+`<main id="main" class="valley-game"><div class="game-title"><div><div class="eyebrow">CHAPTER ${s.chapter} · ${d.name.toUpperCase()} · ${s.mode==='weekly'?'WEEKLY CHALLENGE':s.mode.toUpperCase()}</div><h1>${c.title}</h1></div><div class="game-options"><button id="help" aria-label="Open game rules">? Rules</button><button id="cinema-toggle" class="setting-toggle" aria-label="Task scenes ${NR.read('cinematics',true)?'on':'off'}" aria-pressed="${NR.read('cinematics',true)}" title="Toggle task animations"><span class="toggle-dot" aria-hidden="true"></span>Scenes <b>${NR.read('cinematics',true)?'ON':'OFF'}</b></button><button id="sound" class="setting-toggle" aria-label="Sound effects ${NR.sound?'on':'off'}" aria-pressed="${NR.sound}">${NR.sound?'♫ Sound on':'♫ Sound off'}</button><button id="music" class="setting-toggle" aria-label="Background music ${music.enabled()?'on':'off'}" aria-pressed="${music.enabled()}"><span class="toggle-dot" aria-hidden="true"></span>Music <b>${music.enabled()?'ON':'OFF'}</b></button><button id="hints-toggle" class="setting-toggle" ${d.hints?'':'disabled title="Hints are disabled in Expert"'} aria-label="Planning hints ${hintsOn()?'on':'off'}" aria-pressed="${hintsOn()}" aria-controls="daily-plan"><span class="toggle-dot" aria-hidden="true"></span>Hints <b>${!d.hints?'LOCKED OFF':hintsOn()?'ON':'OFF'}</b></button><button id="fullscreen" aria-label="Toggle full screen">⛶</button></div></div>
       <div class="season-hud"><div class="day-badge"><span>${f.icon}</span><div><small>DAY ${s.day} / ${s.days}</small><b>${f.label}</b></div></div><div><small>Treasury</small><b>◈ ${s.credits}</b></div><div><small>Community trust</small><b class="${s.trust<V.minTrust(s)?'warn-text':''}">♡ ${s.trust}</b></div><div><small>Crew actions</small><b>${'●'.repeat(s.ap)}<em>${'○'.repeat(Math.max(0,s.crew-s.ap))}</em></b></div><div><small>Season average</small><b>${av===null?'—':av+'%'} <em>/ ${c.goal}%</em></b></div></div>
       ${planningBoard()}<div class="play-layout"><section class="valley-map" style="background-image:url(assets/${c.map})" aria-label="Interactive city map: ${c.cityName}"><div class="map-sky ${f.storm?'storm':''}"></div><svg class="city-life" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="land-person"><animateMotion dur="17s" repeatCount="indefinite" path="M415 320 L455 326 L415 320"/><text>🚶</text></g><g class="land-person"><animateMotion dur="21s" repeatCount="indefinite" path="M1150 355 L1185 355 L1150 355"/><text>🚶</text></g><g class="land-bike"><animateMotion dur="15s" repeatCount="indefinite" path="M425 651 L465 680 L425 651"/><text>🚲</text></g><g class="land-bike"><animateMotion dur="19s" repeatCount="indefinite" path="M981 815 L1010 831 L981 815"/><text>🚲</text></g><g class="water-boat"><animateMotion dur="32s" repeatCount="indefinite" path="M858 591 Q825 628 785 665 Q825 628 858 591"/><text>⛵</text></g></svg><div class="map-heading"><span class="map-name">KALDRIVON VALLEY</span><span class="map-subtitle">${esc(c.cityName)} · Chapter ${s.chapter}</span></div><svg class="network-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${V.places.map((p,i)=>`<path class="${s.sites[i].o1?'online':'offline'}" d="M 22 74 Q 48 54 ${p.x} ${p.y}"/>`).join('')}</svg>
       ${V.places.map((p,i)=>{const x=s.sites[i],pct=Math.round(n.served[i]/f.demand[i]*100);return `<button class="district-pin ${selected===i&&tab==='district'?'selected':''} ${pct<85?'struggling':''}" data-site="${i}" style="--x:${p.x}%;--y:${p.y}%" aria-label="${p.name}, ${pct}% traffic served, ${x.health}% hardware health, ${status(x)}"><span class="pin-status">${!x.o1?'O1 !':pct<85?'!':x.health<100?'⚒':x.hardened?'⛨':'✓'}</span><span class="pin-building">${NR.icon(p.short)}</span><span class="pin-name">${p.short}</span><span class="pin-service">Service ${pct}%</span><span class="pin-health ${x.health<100?'warn-text':''}">Health ${x.health}%</span><span class="pin-level">${'◆'.repeat(x.level)}${'◇'.repeat(3-x.level)}</span></button>`;}).join('')}
@@ -84,8 +85,9 @@
       (target||$('.command-panel'))?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});target?.focus({preventScroll:true});
     });
     $('#end-day').onclick=review;$('#help').onclick=help;
+    $('#music').onclick=()=>{music.toggle();render();};
     $('#sound').onclick=()=>{NR.sound=!NR.sound;NR.write('sound',NR.sound);audio.stop();NR.chime('click');render();};
-    $('#hints-toggle').onclick=()=>{const enabled=!hintsOn();NR.write('hints',enabled);render();};
+    $('#hints-toggle').onclick=()=>{const enabled=!hintsOn();NR.write(hintsKey,enabled);render();};
     $('#cinema-toggle').onclick=()=>{NR.write('cinematics',!NR.read('cinematics',true));render();};
     $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else NR.toast('Use your browser’s full-screen or Add to Home Screen option.');}catch{NR.toast('Full screen is not available in this browser.');}};
   }
