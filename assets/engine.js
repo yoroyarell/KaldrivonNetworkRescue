@@ -31,9 +31,11 @@
     energy:{name:'Night Gardener',icon:'☾',price:50,data:1,description:'Saves 7 credits per eligible site each day. Reduces its capacity by 25. Eco policy sleeps every site; balanced policy sleeps only sites with 25 spare capacity.'},
     heal:{name:'Watchkeeper',icon:'✚',price:60,data:2,description:'Automatically clears configuration drift and unlocks connected sites at day end. Cannot mend damaged hardware or restore O1.'}
   };
+  const varied=s=>/-v4-[a-f0-9]{16}$/.test(s.seed);
+  const neglectLoss=s=>varied(s)&&rules(s).id==='expert'?18:12;
   function forecast(s, day=s.day) {
-    const d=rules(s),roll=hash(s.seed+':'+day), storm=day>2 && (day%4===0 || (s.chapter>=4 && day%5===0) || (d.stormEvery&&day%d.stormEvery===0));
-    const festival=day===s.days || day%3===0;
+    const d=rules(s),roll=hash(s.seed+':'+day), storm=day>2 && (varied(s)?(day===3+hash(s.seed+':first-storm')%3 || roll%({easy:6,normal:5,hard:4,expert:3}[d.id])===0):(day%4===0 || (s.chapter>=4 && day%5===0) || (d.stormEvery&&day%d.stormEvery===0)));
+    const festival=day===s.days || (varied(s)?day>1&&hash(s.seed+':festival:'+day)%4===0:day%3===0);
     const demand=places.map((p,i)=>p.base + d.demand + Math.floor((day-1)*d.growth) + (hash(s.seed+':'+day+':'+i)%13-6) + (festival?(i===1?48+d.festival:15+d.festival):0));
     return {day,storm,festival,target:roll%3,demand,label:storm?'River storm':festival?'Lantern festival':'City day',icon:storm?'🌧':festival?'🏮':'☀',energy:storm?1.25:1};
   }
@@ -47,6 +49,12 @@
     if(c.id===5){s.apps=['energy','balance'];s.samples=2;s.pmDay=1;s.policy='eco';}
     if(c.id===6){s.sites.forEach(x=>x.o1=false);s.r1=false;}
     if(c.id===7){s.sites[0].locked=true;s.sites[2].health=60;s.sites[1].o1=false;}
+    if(varied(s)){
+      // Shuffle district starting faults without changing the chapter's resource budget.
+      const order=[0,1,2];
+      for(let i=2;i>0;i--){const j=hash(s.seed+':start:'+i)%(i+1);[order[i],order[j]]=[order[j],order[i]];}
+      const initial=s.sites;s.sites=order.map((source,id)=>({...initial[source],id}));
+    }
     return s;
   }
   const fresh=s=>s.pmDay>0&&s.day-s.pmDay<=rules(s).pmAge;
@@ -149,7 +157,7 @@
     if(s.ended)return null;
     const f=forecast(s),notes=[];
     if(s.apps.includes('heal')&&s.r1&&fresh(s))s.sites.forEach((x,i)=>{if(x.o1&&(x.locked||x.drift)){x.locked=false;x.drift=false;notes.push('Watchkeeper corrected '+places[i].short+'.');}});
-    const n=network(s,f),trustDelta=n.service>=95?5:n.service>=85?2:n.service>=70?-5:-12;
+    const n=network(s,f),trustDelta=n.service>=95?5:n.service>=85?2:n.service>=70?-5:-neglectLoss(s);
     s.credits+=n.net;s.trust=clamp(s.trust+trustDelta,0,100);
     let grant=0;const awards=[];
     if(n.service>=95&&!s.contracts.includes('first')){s.contracts.push('first');grant+=30;awards.push('Connected community: +30 credits');}
@@ -166,10 +174,10 @@
     s.day++;s.ap=s.crew;s.sites.forEach(x=>{x.inspected=false;x.staged=null;});
     const next=forecast(s);
     if(next.storm){const x=s.sites[next.target];x.health=Math.max(0,x.health-(x.hardened?rules(s).protectedDamage:rules(s).damage));if(!x.hardened)x.o1=false;notes.push(`Storm reached ${places[next.target].short}: ${x.hardened?rules(s).protectedDamage:rules(s).damage} health lost${x.hardened?'':'; O1 disconnected'}.`);}
-    if(s.day%rules(s).auditEvery===0){const i=hash(s.seed+':drift:'+s.day)%3;s.sites[i].drift=true;notes.push('Configuration audit due: '+places[i].short+' has drift. Read its O1 report.');}
+    if(varied(s)?s.day>=3&&(hash(s.seed+':audit:'+s.day)%rules(s).auditEvery===0 || s.day===3+hash(s.seed+':first-audit')%rules(s).auditEvery):s.day%rules(s).auditEvery===0){const i=hash(s.seed+':drift:'+s.day)%3;s.sites[i].drift=true;notes.push('Configuration audit due: '+places[i].short+' has drift. Read its O1 report.');}
     if(s.chapter>=6&&s.day===7){s.r1=false;notes.push('R1 service registration expired. Re-register it in the Non-RT RIC.');}
     return report;
   }
-  root.Valley={chapters,difficulties,rules,goal,minTrust,places,apps,create,forecast,network,quote,act,settle,previewChange,fresh,hash};
+  root.Valley={chapters,difficulties,rules,goal,minTrust,places,apps,create,forecast,network,quote,act,settle,previewChange,fresh,hash,neglectLoss,varied};
   if(typeof module!=='undefined')module.exports=root.Valley;
 })(typeof window!=='undefined'?window:globalThis);
