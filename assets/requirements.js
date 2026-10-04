@@ -3,6 +3,7 @@
 function list(s,V,type,id,value){
  const q=V.quote(s,type,id,value),x=s.sites[id],items=[];
  const add=(label,met,help)=>items.push({label,met,help});
+ const lesson=root.ValleyTutorial?.current(s,V);if(lesson)add('Tutorial step',root.ValleyTutorial.matches(lesson,type,id,value),'Guided training allows only the highlighted lesson action. Finish that step, or choose Continue without guidance to unlock normal scored play.');
  if(q.ap)add(`Crew ${s.ap}/${q.ap}`,s.ap>=q.ap,'Crew actions reset each day. Review and finish today to replenish them. Train another crew in Build for a permanent extra action.');
  if(q.cost)add(`Credits ${s.credits}/${q.cost}`,s.credits>=q.cost,'Purchase costs are paid immediately. Finish a day with positive operating income to earn credits; compare energy and upkeep before spending.');
  if(q.parts)add(`Parts ${s.parts}/${q.parts}`,s.parts>=q.parts,'Buy a spare-parts crate in Build. It supplies three parts and uses no crew action.');
