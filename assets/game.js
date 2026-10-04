@@ -71,7 +71,10 @@
     return `<section id="daily-plan" class="daily-plan" aria-label="Daily planning">${last?`<p class="last-day-result">✓ Day ${last.day} completed · ${last.service}% service · ${last.net>=0?'+':''}${last.net} operating credits · ${last.trustDelta>=0?'+':''}${last.trustDelta} trust${last.grant?` · +${last.grant} grant credits`:''}</p>`:''}<div class="plan-heading"><div><small>YOUR DAILY PLAN</small><h2>${esc(p.title)}</h2><p>${esc(p.text)}</p></div>${p.tomorrow?`<div class="tomorrow-preview"><b>Day ${p.tomorrow.day} · ${esc(p.tomorrow.label)}</b><span>${p.tomorrow.service}% service projected · PM ${p.tomorrow.data}</span><small>Projection includes weather, drift and expiring data. It assumes you advance now.</small></div>`:''}</div>${items.length?`<div class="plan-cards">${items.map((h,i)=>`<article class="plan-card ${i<p.urgent.length?'attention':''}"><small>${i<p.urgent.length?'NEEDS ATTENTION':'OPTIONAL OPPORTUNITY'}</small><h3>${esc(h.title)}</h3><p>${esc(h.text)}</p><button data-plan="${i}">Explore this plan →</button></article>`).join('')}</div>`:'<p class="micro">No useful affordable improvement is available today. Let the city run, earn its operating income, and get a fresh crew tomorrow.</p>'}</section>`;
   }
   function hint(){return lesson()?lesson().text:typeof ValleyPlanner==='undefined'?'Review today’s outcome and tomorrow’s forecast.':ValleyPlanner.plan(s,V)?.text||'Your season is complete.';}
-  function render(){
+  function render({preserveScroll=false}={}){
+    // Actions redraw the UI; retain both the desktop inspector and mobile page position.
+    const view=preserveScroll?{panel:$('.panel-body')?.scrollTop||0,x:window.scrollX,y:window.scrollY}:null;
+    const stagedFocus=preserveScroll&&document.activeElement?.dataset.action==='stage'?{id:document.activeElement.dataset.id,value:document.activeElement.dataset.value}:null;
     music.suspend(!!s.ended);
     const f=V.forecast(s),next=V.forecast(s,Math.min(s.days,s.day+1)),n=V.network(s),av=average();
     $('#app').innerHTML=NR.header('')+`<main id="main" class="valley-game"><div class="game-title"><div><div class="eyebrow">CHAPTER ${s.chapter} · ${d.name.toUpperCase()} · ${s.mode==='weekly'?'WEEKLY CHALLENGE':s.mode.toUpperCase()}</div><h1>${c.title}</h1></div><div class="game-options"><button id="help" aria-label="Open game rules">? Rules</button><button id="cinema-toggle" class="setting-toggle" aria-label="Task scenes ${NR.read('cinematics',true)?'on':'off'}" aria-pressed="${NR.read('cinematics',true)}" title="Toggle task animations"><span class="toggle-dot" aria-hidden="true"></span>Scenes <b>${NR.read('cinematics',true)?'ON':'OFF'}</b></button><button id="sound" class="setting-toggle" aria-label="Sound effects ${NR.sound?'on':'off'}" aria-pressed="${NR.sound}">${NR.sound?'♫ Sound on':'♫ Sound off'}</button><button id="music" class="setting-toggle" aria-label="Background music ${music.enabled()?'on':'off'}" aria-pressed="${music.enabled()}"><span class="toggle-dot" aria-hidden="true"></span>Music <b>${music.enabled()?'ON':'OFF'}</b></button><button id="hints-toggle" class="setting-toggle" ${d.hints?'':'disabled title="Hints are disabled in Expert"'} aria-label="Planning hints ${hintsOn()?'on':'off'}" aria-pressed="${hintsOn()}" aria-controls="daily-plan"><span class="toggle-dot" aria-hidden="true"></span>Hints <b>${!d.hints?'LOCKED OFF':hintsOn()?'ON':'OFF'}</b></button><button id="fullscreen" aria-label="Toggle full screen">⛶</button></div></div>
@@ -83,6 +86,11 @@
       <div class="day-control"><div class="service-preview"><small>IF YOU FINISH TODAY</small><div><b class="${n.service<85?'warn-text':'good-text'}">${n.service}% served</b><span>◈ ${n.net>=0?'+':''}${n.net} operating balance</span></div></div><button id="end-day" class="primary">Review day ${s.day} <span>→</span></button></div>${lesson()||hintsOn()?`<div class="mentor" role="status"><span>✦</span><p>${hint()}</p><small>Time to think. No countdown.</small></div>`:''}</main><dialog id="modal" aria-labelledby="modal-title"></dialog>`;
     bind();
     renderTutorial();
+    if(view){
+      $('.panel-body').scrollTop=view.panel;
+      window.scrollTo({left:view.x,top:view.y,behavior:'instant'});
+      if(stagedFocus)document.querySelector(`[data-action="stage"][data-id="${stagedFocus.id}"][data-value="${stagedFocus.value}"]`)?.focus({preventScroll:true});
+    }
   }
   function bind(){
     document.querySelectorAll('[data-site]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.site);tab='district';render();if(innerWidth<850)$('.command-panel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});});
@@ -108,7 +116,7 @@
     const out=V.act(s,type,id,value);if(!out.ok){NR.toast(out.reason);return;}
     s.moves.push([type,/^[0-2]$/.test(String(id))?Number(id):(id??null),value??null]);
     if(lesson()){s.tutorial.feedback=ValleyTutorial.feedback(before,s,V,type,id,out.message);s.tutorial.step++;focusLesson();}
-    save();render();NR.chime(type);
+    save();render({preserveScroll:true});NR.chime(type);
     if(out.scene){busy=true;try{await ValleyCinema.play(out.scene,typeof id==='string'&&/^\d$/.test(id)?V.places[Number(id)].name:out.message);}finally{busy=false;}}
     NR.toast(out.message);
   }
