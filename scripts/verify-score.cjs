@@ -3,7 +3,7 @@ const V=require('../assets/engine.js');
 const types=new Set(['connect','inspect','repair','upgrade','harden','stage','apply','rollback','pm','r1','install','uninstall','policy','parts','crew','compute']);
 function verify(payload,login,issue,date){
  if(!payload||payload.version!==3||!Number.isInteger(payload.chapter)||payload.chapter<1||payload.chapter>7||typeof payload.seed!=='string'||payload.seed.length>50||!['ranked','weekly','challenge'].includes(payload.mode)||!Array.isArray(payload.moves)||payload.moves.length>400)throw Error('Invalid replay format.');
- if(payload.mode==='ranked'&&payload.seed!=='valley-'+payload.chapter)throw Error('Ranked seed does not match its chapter.');
+ if(payload.mode==='ranked'&&payload.seed!=='valley-'+payload.chapter&&!new RegExp('^valley-'+payload.chapter+'-v4-[a-f0-9]{16}$').test(payload.seed))throw Error('Ranked seed does not match its chapter.');
  if(payload.mode==='weekly'&&(!/^\d{4}-\d{2}-\d{2}$/.test(payload.seed)||1+V.hash(payload.seed)%7!==payload.chapter))throw Error('Invalid weekly challenge.');
  if(payload.difficulty!==undefined&&!Object.hasOwn(V.difficulties,payload.difficulty))throw Error('Invalid difficulty.');
  const s=V.create(payload.chapter,payload.seed,payload.mode,payload.difficulty||'easy');
