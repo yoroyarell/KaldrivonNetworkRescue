@@ -52,3 +52,5 @@ dialog.cinema{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:
 .author-heading{display:flex;gap:18px;align-items:center;margin-bottom:18px}.author-heading img{width:55px;height:55px}.author-heading h2{margin:0}.about-links{display:flex;flex-wrap:wrap;gap:10px}
 
 .resident>b{flex:0 0 106px}.resident>b small{display:inline-block;color:#c4d3c9;font-size:10px;line-height:1.4;font-weight:400;margin-top:3px}
+
+.season-outcome{font-size:clamp(42px,7vw,64px);line-height:1.1;margin:14px 0}.season-outcome.win{color:#a8e2b4}.season-outcome.fail{color:#ffb292}.season-outcome small{font-size:.4em;vertical-align:middle;color:#cee2dd}.outcome-checks{display:grid;gap:8px;margin:18px 0}.outcome-checks>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid #517066;border-radius:8px;font-size:14px}.outcome-checks .met{color:#b5d8bf}.outcome-checks .missing{color:#ffc8a1;border-color:#b27c48;background:#5b382b44}.outcome-checks span{font-variant-numeric:tabular-nums}
