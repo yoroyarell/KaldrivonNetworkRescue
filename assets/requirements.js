@@ -4,7 +4,7 @@ function list(s,V,type,id,value){
  const q=V.quote(s,type,id,value),x=s.sites[id],items=[];
  const add=(label,met,help)=>items.push({label,met,help});
  const lesson=root.ValleyTutorial?.current(s,V);if(lesson)add('Tutorial step',root.ValleyTutorial.matches(lesson,type,id,value),'Guided training allows only the highlighted lesson action. Finish that step, or choose Continue without guidance to unlock normal scored play.');
- if(q.ap)add(`Crew ${s.ap}/${q.ap}`,s.ap>=q.ap,'Crew actions reset each day. Review and finish today to replenish them. Train another crew in Build for a permanent extra action.');
+ if(q.ap)add(`Actions left ${s.ap} / needs ${q.ap}`,s.ap>=q.ap,'This is your remaining action budget today, not your trained crew count. Each task spends the shown number of actions. Review and finish today to refill your daily budget. Crew training also needs an available action.');
  if(q.cost)add(`Credits ${s.credits}/${q.cost}`,s.credits>=q.cost,'Purchase costs are paid immediately. Finish a day with positive operating income to earn credits; compare energy and upkeep before spending.');
  if(q.parts)add(`Parts ${s.parts}/${q.parts}`,s.parts>=q.parts,'Buy a spare-parts crate in Build. It supplies three parts and uses no crew action.');
  if(s.ended)add('Active season',false,'This season has finished. Start another chapter to take actions.');
@@ -15,7 +15,7 @@ function list(s,V,type,id,value){
  if(type==='stage'&&x){add('O1 report read',x.inspected,'Read the O1 report first to inspect FM and CM.');add('Configuration change',!!(x.locked||x.drift||x.power!==value),'Choose a different power mode, or use a CM change to clear a radio lock or configuration drift. The active healthy configuration needs no reapplication.');}
  if(type==='rollback')add('Previous configuration',!!x?.previous,'Apply a CM change first to create a previous configuration that you can restore.');
  if(type==='r1')add('R1 unregistered',!s.r1,'The R1 data service needs registering only once. It is already available when this requirement is missing.');
- if(type==='crew')add(`Crew ${s.crew}/6`,s.crew<6,'Crew training adds a daily action, up to six crew actions per day.');
+ if(type==='crew')add(`Trained crews ${s.crew}/6`,s.crew<6,'This is your permanent daily capacity, not actions remaining today. Training is available below the six-crew limit and spends one available action to add one crew.');
  if(type==='compute')add(`Compute ${s.slots}/3`,s.slots<3,'Compute can be expanded to three slots, one for each available rApp.');
  if(type==='uninstall')add('rApp installed',s.apps.includes(id),'Only an installed rApp can be removed. Removal frees its compute slot and ends its daily upkeep.');
  if(type==='policy')add('Different policy',s.policy!==value,'The selected coordination policy is already active. Choose another policy to change priorities.');
