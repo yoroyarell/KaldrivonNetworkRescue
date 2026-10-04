@@ -1,8 +1,10 @@
 (function(root){
 'use strict';
+const requirementIcons=[[/^Actions|New daily/,'◷'],[/^Credits/,'◈'],[/^Parts/,'⚙'],[/^Hardware/,'♡'],[/O1/,'⌁'],[/^Level/,'↑'],[/^Previous/,'↶'],[/^Configuration|CM/,'≋'],[/^R1/,'⇄'],[/^Trained crews/,'♧'],[/^Compute|Slots/,'▦'],[/rApp|installed/i,'✧'],[/^Different policy/,'⚖'],[/^Unprotected/,'⛨'],[/^Fresh PM/,'◌'],[/^Datasets/,'▤'],[/^Active season/,'☀']];
+function icon(label){return requirementIcons.find(([pattern])=>pattern.test(label))?.[1]||'◇';}
 function list(s,V,type,id,value){
  const q=V.quote(s,type,id,value),x=s.sites[id],items=[];
- const add=(label,met,help)=>items.push({label,met,help});
+ const add=(label,met,help)=>items.push({label,met,help,icon:icon(label)});
  const lesson=root.ValleyTutorial?.current(s,V);if(lesson)add('Tutorial step',root.ValleyTutorial.matches(lesson,type,id,value),'Guided training allows only the highlighted lesson action. Finish that step, or choose Continue without guidance to unlock normal scored play.');
  if(q.ap)add(`Actions left ${s.ap} / needs ${q.ap}`,s.ap>=q.ap,'This is your remaining action budget today, not your trained crew count. Each task spends the shown number of actions. Review and finish today to refill your daily budget. Crew training also needs an available action.');
  if(q.cost)add(`Credits ${s.credits}/${q.cost}`,s.credits>=q.cost,'Purchase costs are paid immediately. Finish a day with positive operating income to earn credits; compare energy and upkeep before spending.');
