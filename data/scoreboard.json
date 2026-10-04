@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-10-04T12:18:34.668Z",
+  "updated": "2026-10-04T21:21:29.515Z",
   "scores": [
     {
       "id": "2f7569702d37c411d05c6f4ee4a3a066ada819107166df2c7a370314cbc157f6",
@@ -18,19 +18,49 @@
       "difficulty": "easy"
     },
     {
-      "id": "dfb76e01db4569a0e82d9a6b801387a8937e16d0f81b586383890b5b70f0c36d",
+      "id": "3ee9bfee0fbc5ad4e3c73e3a8924df600215259488ca8f35d5d9e7b7fa7d0bf9",
       "name": "Kaldrivon",
       "mission": 1,
       "mode": "ranked",
       "seed": "valley-1",
-      "score": 894,
-      "average": 97,
+      "score": 899,
+      "average": 100,
       "won": true,
-      "trust": 99,
-      "credits": 166,
+      "trust": 100,
+      "credits": 117,
       "days": 7,
-      "date": "2026-10-03T11:13:29.358Z",
+      "date": "2026-10-04T16:30:56.317Z",
       "difficulty": "easy"
+    },
+    {
+      "id": "97fd5db2eedda97642e5f59a5567f5e5bd7a1857f845e732ea37d4601389874f",
+      "name": "Valley keeper",
+      "mission": 1,
+      "mode": "ranked",
+      "seed": "valley-1",
+      "score": 852,
+      "average": 93,
+      "won": true,
+      "trust": 82,
+      "credits": 457,
+      "days": 7,
+      "date": "2026-10-04T21:03:40.999Z",
+      "difficulty": "easy"
+    },
+    {
+      "id": "3e9a4410dc0cd0a644841a8a2c8b9b25808ac36d27771cbad61b3fb065eccb22",
+      "name": "Kaldrivon",
+      "mission": 1,
+      "mode": "ranked",
+      "seed": "valley-1",
+      "score": 825,
+      "average": 96,
+      "won": true,
+      "trust": 87,
+      "credits": 44,
+      "days": 7,
+      "date": "2026-10-04T20:50:33.392Z",
+      "difficulty": "expert"
     }
   ]
 }
