@@ -9,7 +9,12 @@ NR.submitScore=async s=>{
  const key=JSON.stringify(payload);let pending=NR.pendingScores();if(!pending.some(p=>JSON.stringify(p)===key)){pending.push(payload);NR.write('pending-seasons',pending.slice(-20));}
  const ok=await NR.sendScore(payload);if(ok)NR.write('pending-seasons',NR.pendingScores().filter(p=>JSON.stringify(p)!==key));return ok;
 };
-NR.retryScores=async()=>{for(const payload of NR.pendingScores()){if(await NR.sendScore(payload)){const key=JSON.stringify(payload);NR.write('pending-seasons',NR.pendingScores().filter(p=>JSON.stringify(p)!==key));}}};
+let scoreRetry=null;
+NR.retryScores=()=>{
+ if(scoreRetry)return scoreRetry;
+ scoreRetry=(async()=>{for(const payload of NR.pendingScores()){if(await NR.sendScore(payload)){const key=JSON.stringify(payload);NR.write('pending-seasons',NR.pendingScores().filter(p=>JSON.stringify(p)!==key));}}})().finally(()=>{scoreRetry=null;});
+ return scoreRetry;
+};
 window.addEventListener('online',()=>NR.retryScores());
 // Retry only on page load or when connectivity returns; no background polling.
 NR.retryScores();
