@@ -26,3 +26,15 @@ test('leaving training at every lesson preserves a server-verifiable scored repl
  const record=verify({version:3,chapter:1,seed:'valley-1',mode:s.mode,difficulty:'easy',moves},'QA',0,'');a.equal(record.score,s.score);
  }
 });
+
+test('trained crews differ from remaining actions and Harbor stormproofing returns next day',()=>{
+ const s=V.create(1,'valley-1');s.credits=500;s.parts=10;s.ap=0;
+ const training=R.list(s,V,'crew');
+ a.equal(training.find(x=>x.label==='Actions left 0 / needs 1').met,false);
+ a.equal(training.find(x=>x.label==='Trained crews 4/6').met,true);
+ a.equal(V.quote(s,'harden',2).ok,false);a.equal(s.crew,4);
+ a.equal(R.list(s,V,'harden',2).filter(x=>!x.met).length,1);
+ V.settle(s);a.equal(s.ap,4);
+ a.ok(R.list(s,V,'harden',2).every(x=>x.met));a.ok(V.act(s,'harden',2).ok);
+ a.equal(s.sites[2].hardened,true);a.equal(s.ap,3);
+});
