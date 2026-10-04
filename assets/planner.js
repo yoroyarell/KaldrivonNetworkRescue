@@ -61,7 +61,11 @@
   const ready=!urgent.length&&report.service>=V.chapters[s.chapter-1].goal&&after.credits>=0;
   const title=!s.ap?'Crew shift complete':ready?'Everything is stable. Advance when ready.':'Before you close today';
   const text=!s.ap?'Your actions are used. Review the outcome and tomorrow’s conditions.':ready?'Optional improvements are available below. Saving credits and advancing is a valid choice; unused actions do not carry over.':'Choose what to fix or prepare. You can still advance, but check the consequences in the day review.';
-  return {ready,title,text,urgent,options:options.slice(0,3),today:{service:report.service,net:report.net},tomorrow:next?{day:after.day,label:next.label,service:tomorrow.service,data:V.fresh(after)?'fresh':'stale',credits:after.credits}:null};
+  const kinds=new Set(),distinct=options.filter(h=>{
+   const kind=['inspect','stage','apply','policy'].includes(h.action)?'efficiency':h.action==='install'?'automation':h.action;
+   if(kinds.has(kind))return false;kinds.add(kind);return true;
+  });
+  return {ready,title,text,urgent,options:distinct.slice(0,3),today:{service:report.service,net:report.net},tomorrow:next?{day:after.day,label:next.label,service:tomorrow.service,data:V.fresh(after)?'fresh':'stale',credits:after.credits}:null};
  }
  const api={plan};root.ValleyPlanner=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

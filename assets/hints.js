@@ -33,13 +33,5 @@
     if(next.festival||V.network(s).service<V.chapters[s.chapter-1].goal){const hint=candidate('Capacity will help with busy days. Preview a permanent expansion at Lantern Market and keep enough credits for other work.','district','upgrade',1,undefined,1);if(hint)return hint;}
     return end;
   }
-  function createTimer({getHint,canShow,onShow,onHide,delay=30000,setTimer=setTimeout,clearTimer=clearTimeout}){
-    let timer=null,off=false,destroyed=false;
-    function cancel(){if(timer!==null)clearTimer(timer);timer=null;}
-    function reset(){cancel();onHide();if(off||destroyed)return;timer=setTimer(()=>{timer=null;if(!canShow()){reset();return;}const hint=getHint();if(hint)onShow(hint);},delay);}
-    function enable(value){off=!value;reset();}
-    function destroy(){destroyed=true;cancel();onHide();}
-    return {reset,enable,destroy};
-  }
-  const api={suggest,createTimer};root.ValleyHints=api;if(typeof module!=='undefined')module.exports=api;
+  const api={suggest};root.ValleyHints=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
