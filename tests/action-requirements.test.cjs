@@ -9,6 +9,14 @@ test('stormproof explains parts, credits, crew and existing protection separatel
  const s=V.create();s.ap=0;s.credits=0;s.parts=0;s.sites[0].hardened=true;
  a.equal(R.list(s,V,'harden',0).filter(x=>!x.met).length,4);
 });
+test('state blockers stay visible when all purchase resources are available',()=>{
+ const s=V.create();s.credits=1000;s.parts=10;s.ap=6;
+ const cases=[['repair',0],['connect',1],['upgrade',1],['rollback',1],['r1'],['crew'],['compute'],['uninstall','heal'],['policy',null,'balanced']];
+ s.sites[0].health=100;s.sites[1].level=3;s.crew=6;s.slots=3;
+ for(const [type,id,value] of cases){a.equal(V.quote(s,type,id,value).ok,false);const missing=R.list(s,V,type,id,value).filter(x=>!x.met);a.ok(missing.length,`${type} must explain why it is disabled`);a.ok(missing.every(x=>x.help));}
+ const damage=R.list(s,V,'repair',0).find(x=>x.label==='Hardware damage');a.equal(damage.met,false);a.match(damage.help,/100%/);
+ s.sites[0].health=65;a.ok(R.list(s,V,'repair',0).every(x=>x.met));a.ok(V.act(s,'repair',0).ok);a.equal(s.sites[0].health,100);a.equal(R.list(s,V,'repair',0).find(x=>x.label==='Hardware damage').met,false);
+});
 test('leaving training at every lesson preserves a server-verifiable scored replay',()=>{
  for(let exit=0;exit<T.lessons.length;exit++){
  const s=V.create(1,'valley-1','practice');s.tutorial={step:0};const moves=[];
