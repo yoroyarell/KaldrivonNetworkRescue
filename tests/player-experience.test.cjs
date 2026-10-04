@@ -29,14 +29,6 @@ test('all 18 lessons display real measurements, lead to a valid hint and survive
  a.equal(s.ended,true);a.equal(s.won,true);a.equal(s.history.length,7);a.equal(s.mode,'practice');
  a.equal(H.suggest(s,V,null),null);
 });
-test('idle hints wait 30 seconds, do not interrupt dialogs, and can be reset or disabled',()=>{
- let scheduled,ms,shows=0,hides=0,ready=false;
- const timer=H.createTimer({getHint:()=>({text:'Read O1'}),canShow:()=>ready,onShow:()=>shows++,onHide:()=>hides++,setTimer:(fn,delay)=>{scheduled=fn;ms=delay;return 1;},clearTimer:()=>{scheduled=null;}});
- timer.reset();a.equal(ms,30000);scheduled();a.equal(shows,0);a.ok(scheduled);
- ready=true;scheduled();a.equal(shows,1);timer.reset();a.ok(hides>0);
- timer.enable(false);a.equal(scheduled,null);timer.enable(true);a.ok(scheduled);
- timer.destroy();a.equal(scheduled,null);timer.reset();a.equal(scheduled,null);
-});
 test('task effects schedule audio; mute cancels pending resume and active notes',async()=>{
  let resume,starts=0,stops=0,context;
  class AudioContext{

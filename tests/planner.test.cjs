@@ -23,7 +23,8 @@ test('no-action and final-day states are explicit without inventing a next day',
  s.day=s.days;a.equal(P.plan(s,V).tomorrow,null);
 });
 
-test('idle guidance agrees when a healthy city is ready to advance',()=>{
- const H=require('../assets/hints.js'),s=V.create(1);s.sites.forEach(x=>{x.o1=true;x.locked=false;x.health=100;});
- const hint=H.suggest(s,V,null);a.equal(hint.action,'end');a.match(hint.text,/Everything is stable/);
+test('optional plans offer different kinds of work instead of repeating districts',()=>{
+ const s=V.create(3),p=P.plan(s,V);
+ const kinds=p.options.map(h=>['inspect','stage','apply','policy'].includes(h.action)?'efficiency':h.action==='install'?'automation':h.action);
+ a.equal(new Set(kinds).size,kinds.length);a.ok(kinds.includes('repair'));a.ok(kinds.includes('efficiency'));
 });
